@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -9,6 +10,8 @@ from langchain_groq import ChatGroq
 
 from agent.prompts import ROUTER_PROMPT
 from metrics.store import get_last_agent, set_last_agent
+
+GROQ_TIMEOUT = float(os.getenv("GROQ_REQUEST_TIMEOUT", "90"))
 
 VALID_AGENTS = frozenset({"service", "sales", "recall", "handover", "general"})
 
@@ -63,6 +66,8 @@ def _llm_route(message: str, api_key: str) -> tuple[str, str]:
         temperature=0,
         max_tokens=16,
         api_key=api_key,
+        timeout=GROQ_TIMEOUT,
+        max_retries=1,
     )
     response = llm.invoke(
         [

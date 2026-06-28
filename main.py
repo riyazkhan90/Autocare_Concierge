@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import io
+import logging
 import os
 import re
 import wave
@@ -37,16 +39,24 @@ from metrics.store import (
 
 load_dotenv()
 
+logger = logging.getLogger(__name__)
+
 TTS_MODEL = "canopylabs/orpheus-v1-english"
 TTS_VOICE = "austin"
 TTS_MAX_CHARS = 120
 STT_MODEL = "whisper-large-v3-turbo"
 SKIP_TTS = os.getenv("SKIP_TTS", "").lower() in ("1", "true", "yes")
+CHAT_REQUEST_TIMEOUT = float(os.getenv("CHAT_REQUEST_TIMEOUT", "120"))
+GROQ_CLIENT_TIMEOUT = float(os.getenv("GROQ_REQUEST_TIMEOUT", "90"))
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
+    if os.getenv("GROQ_API_KEY"):
+        logger.info("Startup complete — GROQ_API_KEY is configured")
+    else:
+        logger.warning("Startup complete — GROQ_API_KEY is missing")
     yield
 
 
@@ -58,7 +68,7 @@ def _groq_client() -> Groq:
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
         raise HTTPException(status_code=500, detail="GROQ_API_KEY is not configured")
-    return Groq(api_key=api_key)
+    return Groq(api_key=api_key, timeout=GROQ_CLIENT_TIMEOUT)
 
 
 class TextChatRequest(BaseModel):
@@ -110,7 +120,10 @@ async def admin():
 
 @app.get("/health")
 async def health():
-    return {"status": "ok"}
+    return {
+        "status": "ok",
+        "groq_configured": bool(os.getenv("GROQ_API_KEY")),
+    }
 
 
 @app.get("/metrics")
@@ -224,14 +237,30 @@ async def chat_text(body: TextChatRequest):
             customer_greeting = format_profile_greeting(profile)
 
     try:
-        result, cost_breakdown = _run_turn(
-            body.message,
-            body.thread_id,
-            "text",
-            entry_mode=body.entry_mode,
-            customer_phone=body.customer_phone,
+        logger.info("chat/text start thread_id=%s", body.thread_id)
+        result, cost_breakdown = await asyncio.wait_for(
+            asyncio.to_thread(
+                _run_turn,
+                body.message,
+                body.thread_id,
+                "text",
+                entry_mode=body.entry_mode,
+                customer_phone=body.customer_phone,
+            ),
+            timeout=CHAT_REQUEST_TIMEOUT,
         )
+        logger.info(
+            "chat/text done thread_id=%s agent=%s",
+            body.thread_id,
+            result.routed_agent,
+        )
+    except asyncio.TimeoutError as e:
+        raise HTTPException(
+            status_code=504,
+            detail="Agent request timed out. Please try again.",
+        ) from e
     except Exception as e:
+        logger.exception("chat/text failed thread_id=%s", body.thread_id)
         raise HTTPException(status_code=500, detail=str(e)) from e
 
     return TextChatResponse(
@@ -300,7 +329,8 @@ async def chat_voice(
         if not audio_bytes:
             raise HTTPException(status_code=400, detail="Audio recording is empty — hold the mic button a bit longer")
 
-        transcription = client.audio.transcriptions.create(
+        transcription = await asyncio.to_thread(
+            client.audio.transcriptions.create,
             file=(audio.filename or "audio.webm", audio_bytes),
             model=STT_MODEL,
         )
@@ -312,13 +342,17 @@ async def chat_voice(
             )
 
         stt_cost = calc_stt_cost(duration_seconds)
-        result, cost_breakdown = _run_turn(
-            transcript,
-            thread_id,
-            "voice",
-            extra_cost=stt_cost,
-            record=False,
-            entry_mode="voice",
+        result, cost_breakdown = await asyncio.wait_for(
+            asyncio.to_thread(
+                _run_turn,
+                transcript,
+                thread_id,
+                "voice",
+                extra_cost=stt_cost,
+                record=False,
+                entry_mode="voice",
+            ),
+            timeout=CHAT_REQUEST_TIMEOUT,
         )
         cost_breakdown["stt_duration_seconds"] = duration_seconds
         cost_breakdown["stt_cost_usd"] = round(stt_cost, 6)
@@ -333,7 +367,7 @@ async def chat_voice(
             use_browser_tts = True
         else:
             try:
-                speech_bytes = _synthesize_speech(client, tts_text)
+                speech_bytes = await asyncio.to_thread(_synthesize_speech, client, tts_text)
                 tts_cost = calc_tts_cost(len(tts_text))
                 audio_b64 = base64.b64encode(speech_bytes).decode("ascii")
             except Exception as tts_exc:
@@ -381,5 +415,10 @@ async def chat_voice(
         )
     except HTTPException:
         raise
+    except asyncio.TimeoutError as e:
+        raise HTTPException(
+            status_code=504,
+            detail="Agent request timed out. Please try again.",
+        ) from e
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e

@@ -34,6 +34,9 @@ from metrics.store import ensure_variant, log_agent_route
 
 load_dotenv()
 
+GROQ_TIMEOUT = float(os.getenv("GROQ_REQUEST_TIMEOUT", "90"))
+AGENT_RECURSION_LIMIT = int(os.getenv("AGENT_RECURSION_LIMIT", "12"))
+
 AGENT_LABELS = {
     "service": "Service Agent",
     "sales": "Sales Agent",
@@ -83,6 +86,8 @@ def _build_llm(api_key: str, variant: str) -> ChatGroq:
         temperature=0,
         max_tokens=max_tokens,
         api_key=api_key,
+        timeout=GROQ_TIMEOUT,
+        max_retries=1,
     )
 
 
@@ -163,7 +168,10 @@ def run_agent(message: str, thread_id: str) -> AgentResult:
     set_thread_context(thread_id, routed_agent=agent_name, variant=variant)
 
     agent = _get_specialist(api_key, agent_name, variant)
-    config = {"configurable": {"thread_id": thread_id}}
+    config = {
+        "configurable": {"thread_id": thread_id},
+        "recursion_limit": AGENT_RECURSION_LIMIT,
+    }
 
     invoke_msg: HumanMessage | str = message
     result = None
