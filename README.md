@@ -57,6 +57,7 @@ Full product and technical documentation lives in **[docs/](docs/README.md)**:
 | [Technical](docs/TECHNICAL.md) | API reference, schema, setup, configuration |
 | [Prompts](docs/PROMPTS.md) | Prompt engineering guide, routing, A/B variants |
 | [Metrics](docs/METRICS.md) | KPI definitions, funnels, dashboard interpretation |
+| [Deployment](docs/DEPLOYMENT.md) | Railway deployment guide |
 
 ## JD requirement mapping
 

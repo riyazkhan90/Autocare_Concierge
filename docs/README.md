@@ -16,6 +16,7 @@ Use this index to navigate product, architecture, technical, and operational ref
 | [TECHNICAL.md](TECHNICAL.md) | Developers | API, stack, schema, deployment, configuration |
 | [PROMPTS.md](PROMPTS.md) | AI / conversation designers | Prompt structure, routing, A/B variants, OPTIONS |
 | [METRICS.md](METRICS.md) | Product, ops, analytics | KPI definitions, funnels, dashboard interpretation |
+| [DEPLOYMENT.md](DEPLOYMENT.md) | DevOps | Railway deployment guide |
 | [../CAPABILITIES.md](../CAPABILITIES.md) | Hiring managers, demo | Live demo script and capability matrix |
 
 ---
