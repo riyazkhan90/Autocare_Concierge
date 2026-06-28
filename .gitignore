@@ -1,0 +1,11 @@
+# Secrets — never commit real keys
+.env
+.env.*
+!.env.example
+
+.venv/
+__pycache__/
+*.pyc
+*.db
+data/
+.DS_Store

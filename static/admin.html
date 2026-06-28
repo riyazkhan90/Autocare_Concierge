@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>800-AF Ops Dashboard — Al Futtaim Automotive</title>
+  <script>
+    (function () {
+      var t = localStorage.getItem('alfuttaim_theme');
+      if (t !== 'light' && t !== 'dark') {
+        t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --navy: #0D2137;
+      --accent: #C8102E;
+      --ok: #059669;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+    header {
+      background: var(--navy); color: #fff; padding: 1rem 1.5rem;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
+    }
+    .header-brand {
+      display: flex; align-items: center; gap: 0.85rem;
+    }
+    .header-logo {
+      height: 32px; width: auto; flex-shrink: 0; display: block;
+    }
+    header h1 { font-size: 1.1rem; font-weight: 600; }
+    header h1 span { color: var(--accent); }
+    header a { color: #fff; opacity: 0.85; font-size: 0.85rem; text-decoration: none; }
+    header a:hover { opacity: 1; text-decoration: underline; }
+    main { max-width: 1200px; margin: 0 auto; padding: 1.25rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem; }
+    .card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem;
+    }
+    .card .label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .card .value { font-size: 1.35rem; font-weight: 700; margin-top: 0.25rem; color: var(--on-surface); }
+    .card .value.accent { color: var(--accent); }
+    .card .value.ok { color: var(--ok); }
+    section { margin-bottom: 1.5rem; }
+    section h2 { font-size: 0.95rem; margin-bottom: 0.65rem; color: var(--on-surface); }
+    table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; font-size: 0.8rem; }
+    th, td { padding: 0.55rem 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }
+    th { background: var(--table-head); font-weight: 600; color: var(--muted); font-size: 0.72rem; text-transform: uppercase; }
+    tr:last-child td { border-bottom: none; }
+    .pill { display: inline-block; padding: 0.15rem 0.45rem; border-radius: 999px; font-size: 0.68rem; font-weight: 600; }
+    .pill.service { background: #E0E7FF; color: #3730A3; }
+    .pill.sales { background: #FEE2E2; color: #B91C1C; }
+    .pill.recall { background: #FEF3C7; color: #B45309; }
+    .pill.handover { background: #F3F4F6; color: #4B5563; }
+    .pill.general { background: #F1F5F9; color: #64748B; }
+    .pill.yes { background: #D1FAE5; color: #065F46; }
+    .pill.no { background: #F3F4F6; color: #6B7280; }
+    .handover-json {
+      font-family: ui-monospace, monospace; font-size: 0.72rem; background: var(--code-bg);
+      padding: 0.5rem; border-radius: 8px; max-height: 120px; overflow: auto; white-space: pre-wrap;
+    }
+    .toolbar { display: flex; gap: 0.5rem; margin-bottom: 1rem; align-items: center; }
+    .toolbar button {
+      background: var(--btn-primary-bg, var(--navy)); color: #fff; border: none; border-radius: 8px;
+      padding: 0.45rem 0.85rem; font-family: inherit; font-size: 0.8rem; cursor: pointer;
+    }
+    .toolbar span { font-size: 0.8rem; color: var(--muted); }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 800px) { .two-col { grid-template-columns: 1fr; } }
+  </style>
+  <link rel="stylesheet" href="/static/theme.css" />
+</head>
+<body>
+  <header>
+    <div class="header-brand">
+      <img src="/static/alfuttaim-logo.svg" alt="Al Futtaim Automotive" class="header-logo" width="160" height="32" />
+      <h1>800-AF <span>Ops Dashboard</span></h1>
+    </div>
+    <div class="header-actions">
+      <span id="lastRefresh" style="font-size:0.75rem;opacity:0.7"></span>
+      <button type="button" class="theme-toggle" id="themeToggle">
+        <span class="theme-toggle-icon" aria-hidden="true"></span>
+        <span class="theme-toggle-label">Dark</span>
+      </button>
+      <a href="/static/index.html" class="header-link">← Back to concierge</a>
+    </div>
+  </header>
+  <main>
+    <div class="toolbar">
+      <button type="button" id="refreshBtn">Refresh</button>
+      <span>Product metrics from live interaction data · Al Futtaim Automotive</span>
+    </div>
+
+    <div class="grid" id="metricCards"></div>
+
+    <div class="two-col">
+      <section>
+        <h2>A/B experiment (prompt brevity)</h2>
+        <table><thead><tr><th>Variant</th><th>Sessions</th><th>Resolution</th><th>Avg CX</th></tr></thead>
+        <tbody id="experimentBody"></tbody></table>
+      </section>
+      <section>
+        <h2>Conversion funnels</h2>
+        <table><thead><tr><th>Intent</th><th>Starts</th><th>Converted</th><th>Rate</th></tr></thead>
+        <tbody id="conversionBody"></tbody></table>
+      </section>
+    </div>
+
+    <section>
+      <h2>Recent bookings</h2>
+      <table><thead><tr><th>Code</th><th>Service</th><th>Customer</th><th>Vehicle</th><th>Date</th></tr></thead>
+      <tbody id="bookingsBody"></tbody></table>
+    </section>
+
+    <section>
+      <h2>Escalations &amp; 800-AF handover packages</h2>
+      <table><thead><tr><th>Ticket</th><th>Thread</th><th>Reason</th><th>Handover package</th><th>Time</th></tr></thead>
+      <tbody id="escalationsBody"></tbody></table>
+    </section>
+
+    <div class="two-col">
+      <section>
+        <h2>Multi-agent routing</h2>
+        <table><thead><tr><th>Agent</th><th>Reason</th><th>Message</th><th>Time</th></tr></thead>
+        <tbody id="routesBody"></tbody></table>
+      </section>
+      <section>
+        <h2>Intent events</h2>
+        <table><thead><tr><th>Intent</th><th>Mode</th><th>Converted</th><th>Tool</th></tr></thead>
+        <tbody id="intentsBody"></tbody></table>
+      </section>
+    </div>
+
+    <section>
+      <h2>Recent conversations</h2>
+      <table><thead><tr><th>Thread</th><th>Agent</th><th>Intent</th><th>Variant</th><th>Mode</th><th>CX</th><th>Turns</th><th>Cost</th></tr></thead>
+      <tbody id="conversationsBody"></tbody></table>
+    </section>
+  </main>
+
+  <script>
+    const pct = v => (v * 100).toFixed(1) + '%';
+    const money = v => '$' + Number(v || 0).toFixed(4);
+    const time = s => s ? s.slice(0, 19).replace('T', ' ') : '—';
+
+    function agentPill(agent) {
+      const a = (agent || 'general').toLowerCase();
+      return `<span class="pill ${a}">${agent || '—'}</span>`;
+    }
+
+    async function loadDashboard() {
+      const res = await fetch('/admin/dashboard');
+      if (!res.ok) throw new Error('Failed to load dashboard');
+      const data = await res.json();
+      const m = data.metrics;
+
+      document.getElementById('metricCards').innerHTML = `
+        <div class="card"><div class="label">Conversations</div><div class="value">${m.conversation_count}</div></div>
+        <div class="card"><div class="label">Resolution rate</div><div class="value ok">${pct(m.resolution_rate)}</div></div>
+        <div class="card"><div class="label">Escalation rate</div><div class="value accent">${pct(m.escalation_rate)}</div></div>
+        <div class="card"><div class="label">Cost / resolution</div><div class="value">${money(m.cost_per_resolution_usd)}</div></div>
+        <div class="card"><div class="label">Avg CX score</div><div class="value ok">${m.avg_cx_score}/100</div></div>
+        <div class="card"><div class="label">Bookings</div><div class="value">${m.booking_count}</div></div>
+        <div class="card"><div class="label">Booking conversion</div><div class="value ok">${pct(m.booking_conversion_rate)}</div></div>
+        <div class="card"><div class="label">Total inference cost</div><div class="value">${money(m.total_cost_usd)}</div></div>
+      `;
+
+      const exp = m.experiments || {};
+      document.getElementById('experimentBody').innerHTML = ['A', 'B'].map(v => {
+        const row = exp[v] || { conversations: 0, resolution_rate: 0, avg_cx_score: 0 };
+        return `<tr><td><strong>${v}</strong></td><td>${row.conversations}</td><td>${pct(row.resolution_rate || 0)}</td><td>${row.avg_cx_score || 0}</td></tr>`;
+      }).join('');
+
+      const conv = m.conversions || {};
+      const convRows = Object.entries(conv);
+      document.getElementById('conversionBody').innerHTML = convRows.length
+        ? convRows.map(([k, v]) => `<tr><td>${k}</td><td>${v.starts}</td><td>${v.converted}</td><td>${pct(v.rate || 0)}</td></tr>`).join('')
+        : '<tr><td colspan="4">No intent events yet</td></tr>';
+
+      document.getElementById('bookingsBody').innerHTML = data.bookings.length
+        ? data.bookings.map(b => `<tr><td><strong>${b.confirmation_code}</strong></td><td>${b.service_type}</td><td>${b.customer_name}</td><td>${b.vehicle_model}</td><td>${b.date} ${b.time}</td></tr>`).join('')
+        : '<tr><td colspan="5">No bookings yet</td></tr>';
+
+      document.getElementById('escalationsBody').innerHTML = data.escalations.length
+        ? data.escalations.map(e => `<tr>
+            <td><strong>${e.ticket_id || '—'}</strong></td>
+            <td style="font-size:0.7rem">${(e.thread_id || '').slice(0, 8)}…</td>
+            <td>${e.reason}</td>
+            <td><div class="handover-json">${e.handover ? JSON.stringify(e.handover, null, 2) : '—'}</div></td>
+            <td>${time(e.created_at)}</td>
+          </tr>`).join('')
+        : '<tr><td colspan="5">No escalations yet</td></tr>';
+
+      document.getElementById('routesBody').innerHTML = data.routes.length
+        ? data.routes.map(r => `<tr><td>${agentPill(r.agent)}</td><td>${r.route_reason}</td><td>${r.message_preview}</td><td>${time(r.created_at)}</td></tr>`).join('')
+        : '<tr><td colspan="4">No routes yet</td></tr>';
+
+      document.getElementById('intentsBody').innerHTML = data.intents.length
+        ? data.intents.map(i => `<tr><td>${i.intent}</td><td>${i.entry_mode}</td><td><span class="pill ${i.converted ? 'yes' : 'no'}">${i.converted ? 'Yes' : 'No'}</span></td><td>${i.conversion_tool || '—'}</td></tr>`).join('')
+        : '<tr><td colspan="4">No intents yet</td></tr>';
+
+      document.getElementById('conversationsBody').innerHTML = data.conversations.length
+        ? data.conversations.map(c => `<tr>
+            <td style="font-size:0.7rem">${(c.thread_id || '').slice(0, 8)}…</td>
+            <td>${agentPill(c.last_agent)}</td>
+            <td>${c.primary_intent || '—'}</td>
+            <td>${c.variant || 'A'}</td>
+            <td>${c.entry_mode || '—'}</td>
+            <td>${c.cx_score != null ? Math.round(c.cx_score) : '—'}</td>
+            <td>${c.turns}</td>
+            <td>${money(c.total_cost_usd)}</td>
+          </tr>`).join('')
+        : '<tr><td colspan="8">No conversations yet</td></tr>';
+
+      document.getElementById('lastRefresh').textContent = 'Updated ' + new Date().toLocaleTimeString();
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', () => loadDashboard().catch(e => alert(e.message)));
+    loadDashboard().catch(e => alert(e.message));
+    setInterval(() => loadDashboard().catch(() => {}), 30000);
+  </script>
+  <script src="/static/theme.js"></script>
+</body>
+</html>

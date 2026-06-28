@@ -1,0 +1,1671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Al Futtaim Automotive Concierge</title>
+  <script>
+    (function () {
+      var t = localStorage.getItem('alfuttaim_theme');
+      if (t !== 'light' && t !== 'dark') {
+        t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* Brand/layout only — color tokens live in theme.css */
+    :root {
+      --navy: #0D2137;
+      --accent: #C8102E;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: var(--navy);
+      color: #fff;
+      padding: 1rem 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    header h1 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1.3;
+    }
+
+    header .tagline {
+      font-size: 0.7rem;
+      opacity: 0.75;
+      font-weight: 400;
+      margin-top: 0.15rem;
+    }
+
+    header h1 span {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .header-logo {
+      height: 36px;
+      width: auto;
+      flex-shrink: 0;
+      display: block;
+    }
+
+    .header-brand-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .metrics-strip {
+      display: flex;
+      gap: 1.25rem;
+      font-size: 0.8rem;
+      opacity: 0.9;
+    }
+
+    .metric strong {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 720px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+
+    #chat {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-height: 400px;
+      max-height: calc(100vh - 220px);
+    }
+
+    #messages {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .bubble {
+      max-width: 85%;
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      line-height: 1.5;
+      font-size: 0.95rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .bubble.user {
+      align-self: flex-end;
+      background: var(--user-bubble);
+      border: 1px solid var(--border);
+      border-bottom-right-radius: 4px;
+    }
+
+    .bubble.assistant {
+      align-self: flex-start;
+      background: var(--assistant-bubble);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 1px 3px rgba(26, 35, 50, 0.06);
+    }
+
+    .agent-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      margin-bottom: 0.3rem;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--on-surface);
+    }
+
+    .agent-badge.service { border-color: var(--on-surface); color: var(--on-surface); }
+    .agent-badge.sales { border-color: var(--accent); color: var(--accent); }
+    .agent-badge.recall { border-color: #B45309; color: #B45309; }
+    .agent-badge.handover { border-color: #6B7280; color: #6B7280; }
+    .agent-badge.general { border-color: var(--border); color: var(--muted); }
+
+    .btn-routes {
+      background: transparent;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: 0.35rem 0.65rem;
+      font-family: inherit;
+      font-size: 0.75rem;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .btn-routes:hover {
+      border-color: var(--on-surface);
+      color: var(--on-surface);
+    }
+
+    .bubble.error {
+      align-self: stretch;
+      background: var(--error-bg);
+      border: 1px solid var(--error-border);
+      color: var(--error-text);
+      font-size: 0.875rem;
+    }
+
+    .welcome-card {
+      align-self: stretch;
+      background: var(--assistant-bubble);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.25rem 1.35rem;
+      box-shadow: 0 2px 8px rgba(13, 33, 55, 0.06);
+    }
+
+    .welcome-header {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      margin-bottom: 1rem;
+    }
+
+    .welcome-icon {
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      display: block;
+    }
+
+    .welcome-header strong {
+      display: block;
+      font-size: 1rem;
+      color: var(--on-surface);
+    }
+
+    .welcome-header span {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .welcome-text {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--text);
+      margin-bottom: 1rem;
+    }
+
+    .welcome-list {
+      margin: 0 0 1rem 1.1rem;
+      font-size: 0.9rem;
+      line-height: 1.7;
+      color: var(--text);
+    }
+
+    .quick-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .quick-actions button {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.45rem 0.9rem;
+      font-family: inherit;
+      font-size: 0.8rem;
+      color: var(--on-surface);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .quick-actions button:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--surface-accent);
+    }
+
+    .welcome-ar {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px dashed var(--border);
+      text-align: right;
+      direction: rtl;
+    }
+
+    .welcome-ar .welcome-text,
+    .welcome-ar .welcome-list {
+      text-align: right;
+    }
+
+    .lang-toggle {
+      display: flex;
+      gap: 0.35rem;
+      margin-top: 0.75rem;
+    }
+
+    .lang-toggle button {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.2rem 0.5rem;
+      font-size: 0.7rem;
+      cursor: pointer;
+      color: var(--muted);
+      font-family: inherit;
+    }
+
+    .lang-toggle button.active {
+      background: var(--btn-primary-bg, var(--navy));
+      color: #fff;
+      border-color: var(--btn-primary-bg, var(--navy));
+    }
+
+    .feedback-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.35rem;
+      align-self: flex-start;
+    }
+
+    .feedback-row button {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.25rem 0.6rem;
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: var(--muted);
+      transition: all 0.15s;
+    }
+
+    .feedback-row button:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .feedback-row button.selected {
+      background: var(--btn-primary-bg, var(--navy));
+      color: #fff;
+      border-color: var(--btn-primary-bg, var(--navy));
+    }
+
+    .input-area {
+      border-top: 1px solid var(--border);
+      padding-top: 1rem;
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    #messageInput {
+      flex: 1;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      font-family: inherit;
+      font-size: 0.95rem;
+      resize: none;
+      min-height: 44px;
+      max-height: 120px;
+      background: var(--input-bg, var(--surface));
+      color: var(--text);
+    }
+
+    #messageInput:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 0;
+      border-color: transparent;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 0.75rem 1.1rem;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-send {
+      background: var(--btn-primary-bg, var(--navy));
+      color: #fff;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .btn-send:hover { background: var(--btn-primary-hover, #1a3352); }
+    .btn-send:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-send svg,
+    .btn-mic svg {
+      width: 22px;
+      height: 22px;
+      fill: currentColor;
+    }
+
+    .btn-stop {
+      background: var(--surface);
+      color: var(--error-text);
+      border: 1px solid var(--error-border);
+      display: none;
+      height: 44px;
+      padding: 0 0.85rem;
+      border-radius: 22px;
+      flex-shrink: 0;
+    }
+
+    .btn-stop.visible { display: flex; align-items: center; }
+
+    .btn-mic {
+      background: var(--btn-primary-bg, var(--navy));
+      color: #fff;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: none;
+      user-select: none;
+      touch-action: none;
+      box-shadow: 0 2px 6px rgba(13, 33, 55, 0.2);
+    }
+
+    .btn-mic:hover { background: var(--btn-primary-hover, #1a3352); }
+
+    .btn-mic.recording {
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(200, 16, 46, 0.25);
+    }
+
+    .btn-mic:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .session-bar {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .btn-new-chat,
+    .btn-guided {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.3rem 0.65rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .btn-new-chat:hover,
+    .btn-guided:hover {
+      border-color: var(--on-surface);
+      color: var(--on-surface);
+    }
+
+    .btn-guided {
+      color: var(--on-surface);
+      border-color: var(--on-surface-border);
+    }
+
+    .booking-wizard {
+      align-self: stretch;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.1rem 1.2rem;
+      box-shadow: 0 2px 8px rgba(13, 33, 55, 0.06);
+    }
+
+    .booking-wizard.thread-guided {
+      border-color: var(--on-surface-border);
+      box-shadow: 0 2px 8px rgba(13, 33, 55, 0.08);
+    }
+
+    .wizard-step-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.35rem;
+    }
+
+    .wizard-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--on-surface);
+      margin-bottom: 0.75rem;
+    }
+
+    .wizard-progress {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .wizard-step-track {
+      display: flex;
+      gap: 0.35rem;
+      margin-bottom: 0.65rem;
+      flex-wrap: wrap;
+    }
+
+    .wizard-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+
+    .wizard-dot.done { background: var(--accent); opacity: 0.45; }
+    .wizard-dot.active { background: var(--accent); opacity: 1; transform: scale(1.15); }
+
+    .wizard-collected {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .wizard-chip {
+      font-size: 0.68rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      background: var(--user-bubble);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .wizard-chip:hover {
+      border-color: var(--accent);
+      color: var(--on-surface);
+    }
+
+    .option-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .option-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.5rem 0.75rem;
+      font-family: inherit;
+      font-size: 0.8rem;
+      color: var(--on-surface);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .option-btn:hover,
+    .option-btn.selected {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--surface-accent);
+    }
+
+    .wizard-input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.65rem 0.85rem;
+      font-family: inherit;
+      font-size: 0.9rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .wizard-summary {
+      font-size: 0.85rem;
+      line-height: 1.6;
+      background: var(--user-bubble);
+      border-radius: 10px;
+      padding: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .wizard-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .wizard-actions button {
+      border-radius: 10px;
+      padding: 0.5rem 1rem;
+      font-family: inherit;
+      font-size: 0.8rem;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--on-surface);
+    }
+
+    .wizard-actions .primary {
+      background: var(--btn-primary-bg, var(--navy));
+      color: #fff;
+      border-color: var(--btn-primary-bg, var(--navy));
+    }
+
+    .reply-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.4rem;
+      align-self: flex-start;
+    }
+
+    .reply-options button {
+      background: var(--surface);
+      border: 1px solid var(--on-surface-border);
+      border-radius: 999px;
+      padding: 0.35rem 0.75rem;
+      font-family: inherit;
+      font-size: 0.78rem;
+      color: var(--on-surface);
+      cursor: pointer;
+    }
+
+    .reply-options button:hover {
+      background: var(--btn-primary-bg, var(--navy));
+      color: #fff;
+      border-color: var(--btn-primary-bg, var(--navy));
+    }
+
+    .status-line {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-align: center;
+      padding: 0.25rem 0 0.5rem;
+      min-height: 1.25rem;
+    }
+  </style>
+  <link rel="stylesheet" href="/static/theme.css" />
+</head>
+<body>
+  <header>
+    <div class="header-brand">
+      <img src="/static/alfuttaim-logo.svg" alt="Al Futtaim Automotive" class="header-logo" width="180" height="36" />
+      <div class="header-brand-text">
+        <h1><span>Concierge</span></h1>
+        <div class="tagline">Service &amp; sales assistant · UAE</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="metrics-strip">
+        <div class="metric">Resolution: <strong id="mResolution">—</strong></div>
+        <div class="metric">Escalation: <strong id="mEscalation">—</strong></div>
+        <div class="metric">Cost/resolution: <strong id="mCost">—</strong></div>
+        <a href="/admin" class="header-link">Ops dashboard →</a>
+      </div>
+      <button type="button" class="theme-toggle" id="themeToggle">
+        <span class="theme-toggle-icon" aria-hidden="true"></span>
+        <span class="theme-toggle-label">Dark</span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <div class="session-bar">
+      <button type="button" class="btn-guided" data-flow="booking">Book service</button>
+      <button type="button" class="btn-guided" data-flow="recall">Check recalls</button>
+      <button type="button" class="btn-guided" data-flow="tradein">Trade-in quote</button>
+      <button type="button" class="btn-routes" id="routesBtn" title="View multi-agent routing log">Routing log</button>
+      <button type="button" class="btn-new-chat" id="newChatBtn" title="Start a new conversation">New chat</button>
+    </div>
+    <div id="chat">
+      <div id="welcomePanel"></div>
+      <div id="messages"></div>
+    </div>
+    <div class="status-line" id="statusLine"></div>
+    <div class="input-area">
+      <textarea id="messageInput" rows="1" placeholder="Ask about servicing, recalls, trade-ins, or book an appointment…"></textarea>
+      <button type="button" class="btn btn-mic" id="micBtn" title="Hold to talk" aria-label="Hold to talk">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+      </button>
+      <button type="button" class="btn btn-stop" id="stopBtn">Stop</button>
+      <button type="button" class="btn btn-send" id="sendBtn" title="Send" aria-label="Send">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </main>
+
+  <script>
+    const chat = document.getElementById('chat');
+    const messagesEl = document.getElementById('messages');
+    const welcomePanel = document.getElementById('welcomePanel');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const micBtn = document.getElementById('micBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const newChatBtn = document.getElementById('newChatBtn');
+    const routesBtn = document.getElementById('routesBtn');
+    const statusLine = document.getElementById('statusLine');
+
+    const VEHICLE_CATALOG = {
+      services: ['Minor service', 'Interim service', 'Major service', 'Oil change', 'Brake inspection', 'AC service'],
+      makes: ['Toyota', 'Lexus', 'Honda', 'Ford', 'BMW', 'Volvo', 'BYD', 'Other'],
+      models: {
+        Toyota: ['Camry', 'Corolla', 'RAV4', 'Land Cruiser', 'Hilux', 'Yaris'],
+        Lexus: ['ES', 'RX', 'NX', 'IS', 'LX'],
+        Honda: ['Civic', 'Accord', 'CR-V', 'Pilot'],
+        Ford: ['F-150', 'Explorer', 'Mustang', 'Territory'],
+        BMW: ['X3', 'X5', '3 Series', '5 Series'],
+        Volvo: ['XC60', 'XC90', 'S90'],
+        BYD: ['Atto 3', 'Seal', 'Han'],
+        Other: ['Sedan', 'SUV', 'Other model'],
+      },
+      years: [2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018],
+      times: ['09:00', '11:30', '14:00', '16:00'],
+      mileage: ['Under 40,000 km', '40,000 – 80,000 km', '80,000 – 120,000 km', 'Over 120,000 km'],
+      conditions: ['Excellent', 'Good', 'Fair', 'Poor'],
+    };
+
+    const FLOW_CONFIG = {
+      booking: {
+        label: 'Service booking',
+        steps: [
+          { key: 'service', title: 'What service do you need?' },
+          { key: 'make', title: 'Select vehicle make' },
+          { key: 'model', title: 'Select vehicle model' },
+          { key: 'year', title: 'Select model year' },
+          { key: 'date', title: 'Choose a preferred date' },
+          { key: 'time', title: 'Choose a time slot' },
+          { key: 'name', title: 'Your full name' },
+          { key: 'confirm', title: 'Confirm your booking' },
+        ],
+        initial: { service: '', make: '', model: '', year: '', date: '', dateLabel: '', time: '', name: '' },
+        confirmLabel: 'Confirm & book',
+        buildMessage: s =>
+          `Please book a ${s.service} for my ${s.year} ${s.make} ${s.model} ` +
+          `on ${s.date} at ${s.time}. Customer name: ${s.name}.`,
+        summary: s =>
+          `Service: ${s.service}\nVehicle: ${s.year} ${s.make} ${s.model}\n` +
+          `Date: ${s.dateLabel || s.date} at ${s.time}\nName: ${s.name}`,
+      },
+      recall: {
+        label: 'Recall lookup',
+        steps: [
+          { key: 'make', title: 'Select vehicle make' },
+          { key: 'model', title: 'Select vehicle model' },
+          { key: 'year', title: 'Select model year' },
+          { key: 'confirm', title: 'Check safety recalls' },
+        ],
+        initial: { make: '', model: '', year: '' },
+        confirmLabel: 'Check recalls',
+        buildMessage: s =>
+          `Please check open safety recalls for my ${s.year} ${s.make} ${s.model}.`,
+        summary: s => `Vehicle: ${s.year} ${s.make} ${s.model}`,
+      },
+      tradein: {
+        label: 'Trade-in estimate',
+        steps: [
+          { key: 'make', title: 'Select vehicle make' },
+          { key: 'model', title: 'Select vehicle model' },
+          { key: 'year', title: 'Select model year' },
+          { key: 'mileage', title: 'Approximate mileage' },
+          { key: 'condition', title: 'Vehicle condition' },
+          { key: 'confirm', title: 'Get your estimate' },
+        ],
+        initial: { make: '', model: '', year: '', mileage: '', condition: '' },
+        confirmLabel: 'Get estimate',
+        buildMessage: s =>
+          `I'd like a trade-in estimate for my ${s.year} ${s.make} ${s.model}, ` +
+          `mileage ${s.mileage} (approx. ${mileageRangeToKm(s.mileage).toLocaleString()} km), ` +
+          `${s.condition.toLowerCase()} condition.`,
+        summary: s =>
+          `Vehicle: ${s.year} ${s.make} ${s.model}\nMileage: ${s.mileage}\nCondition: ${s.condition}`,
+      },
+    };
+
+    const MIC_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>';
+
+    let threadId = crypto.randomUUID();
+    let chatHistory = [];
+    let threadFlow = { flowKey: null, collected: {} };
+    let customerPhone = null;
+    let customerGreetingShown = false;
+    sessionStorage.removeItem('alfuttaim_chat_history');
+    sessionStorage.removeItem('alfuttaim_thread_id');
+
+    let abortController = null;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let recordStart = null;
+    let recordMimeType = 'audio/webm';
+
+    function hasChatHistory() {
+      return chatHistory.length > 0;
+    }
+
+    function scrollChat() {
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function shortForVoice(text) {
+      const max = 140;
+      if (!text || text.length <= max) return text;
+      const cut = text.slice(0, max);
+      const lastStop = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('! '), cut.lastIndexOf('? '));
+      if (lastStop > 50) return cut.slice(0, lastStop + 1).trim();
+      return cut.trim() + '…';
+    }
+
+    function speakBrowserTts(text) {
+      if (!window.speechSynthesis || !text) return;
+      window.speechSynthesis.cancel();
+      const spoken = shortForVoice(text);
+      const utter = new SpeechSynthesisUtterance(spoken);
+      utter.rate = 1;
+      utter.pitch = 1;
+      const voices = window.speechSynthesis.getVoices();
+      const preferred = voices.find(v => v.lang.startsWith('en')) || voices[0];
+      if (preferred) utter.voice = preferred;
+      window.speechSynthesis.speak(utter);
+    }
+
+    if (window.speechSynthesis) {
+      window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+    }
+
+    function pickRecorderMimeType() {
+      const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'];
+      return types.find(t => MediaRecorder.isTypeSupported(t)) || '';
+    }
+
+    function showWelcome() {
+      welcomePanel.innerHTML = `
+        <div class="welcome-header">
+          <img src="/static/alfuttaim-mark.svg" alt="" class="welcome-icon" width="44" height="44" aria-hidden="true" />
+          <div>
+            <strong>Welcome to Al Futtaim Automotive</strong>
+            <span>Your service &amp; sales assistant · مرحباً بكم</span>
+          </div>
+        </div>
+        <div id="welcomeEn">
+          <p class="welcome-text">
+            Marhaba! I'm here to help with Al Futtaim Automotive services across the UAE.
+            Type a message or hold the mic icon to speak. I can reply in English or Arabic.
+          </p>
+          <ul class="welcome-list">
+            <li>Book a service appointment (minor, interim, major, oil change, brakes, AC)</li>
+            <li>Look up vehicle safety recalls</li>
+            <li>Get a trade-in estimate</li>
+            <li>Connect you with a service advisor when needed</li>
+          </ul>
+          <div class="quick-actions">
+            <button type="button" data-action="booking">Book service (guided)</button>
+            <button type="button" data-action="recall">Check recalls (guided)</button>
+            <button type="button" data-action="tradein">Trade-in quote (guided)</button>
+            <button type="button" data-action="booking-ar">حجز صيانة</button>
+            <button type="button" id="demoCustomerBtn">Demo customer (Sara)</button>
+          </div>
+        </div>
+        <div id="welcomeAr" class="welcome-ar" style="display:none">
+          <p class="welcome-text">
+            مرحباً! أنا مساعدكم لخدمات الفطيم للسيارات في الإمارات.
+            يمكنكم الكتابة أو الضغط المستمر على زر الميكروفون للتحدث.
+          </p>
+          <ul class="welcome-list">
+            <li>حجز موعد صيانة</li>
+            <li>الاستعلام عن استدعاءات السلامة</li>
+            <li>تقدير قيمة استبدال المركبة</li>
+            <li>التحويل إلى مستشار خدمة عند الحاجة</li>
+          </ul>
+          <div class="quick-actions" style="justify-content:flex-end">
+            <button type="button" data-action="booking-ar">حجز صيانة</button>
+            <button type="button" data-action="recall">استدعاءات</button>
+            <button type="button" data-action="tradein">تقييم استبدال</button>
+          </div>
+        </div>
+        <div class="lang-toggle">
+          <button type="button" id="langEn" class="active">English</button>
+          <button type="button" id="langAr">العربية</button>
+        </div>
+      `;
+      const card = welcomePanel;
+      card.className = 'welcome-card';
+      card.querySelectorAll('.quick-actions button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const action = btn.dataset.action;
+          if (action === 'booking' || action === 'booking-ar') startGuidedWizard('booking');
+          else if (action === 'recall') startGuidedWizard('recall');
+          else if (action === 'tradein') startGuidedWizard('tradein');
+          else if (btn.dataset.prompt) sendMessage(btn.dataset.prompt);
+        });
+      });
+      const demoBtn = card.querySelector('#demoCustomerBtn');
+      if (demoBtn) {
+        demoBtn.addEventListener('click', async () => {
+          try {
+            const res = await fetch('/customer/demo/sara');
+            const profile = await res.json();
+            customerPhone = '+971501234567';
+            customerGreetingShown = false;
+            statusLine.textContent = `Demo profile loaded: ${profile.name} (${profile.loyalty_tier}) — vehicle on file.`;
+          } catch (_) {
+            customerPhone = '+971501234567';
+            statusLine.textContent = 'Demo customer Sara loaded (+971501234567).';
+          }
+        });
+      }
+      card.querySelector('#langEn').addEventListener('click', () => {
+        card.querySelector('#welcomeEn').style.display = 'block';
+        card.querySelector('#welcomeAr').style.display = 'none';
+        card.querySelector('#langEn').classList.add('active');
+        card.querySelector('#langAr').classList.remove('active');
+      });
+      card.querySelector('#langAr').addEventListener('click', () => {
+        card.querySelector('#welcomeEn').style.display = 'none';
+        card.querySelector('#welcomeAr').style.display = 'block';
+        card.querySelector('#langAr').classList.add('active');
+        card.querySelector('#langEn').classList.remove('active');
+      });
+    }
+
+    function parseReplyOptions(text) {
+      const match = text.match(/\nOPTIONS:\s*(.+)$/i);
+      if (!match) return { body: text, chips: [] };
+      const body = text.slice(0, match.index).trim();
+      const chips = match[1].split('|').map(s => s.trim()).filter(Boolean);
+      return { body, chips };
+    }
+
+    function next7Days() {
+      return Array.from({ length: 7 }, (_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() + i + 1);
+        return {
+          label: d.toLocaleDateString('en-AE', { weekday: 'short', month: 'short', day: 'numeric' }),
+          value: d.toISOString().slice(0, 10),
+        };
+      });
+    }
+
+    function mileageRangeToKm(label) {
+      const s = String(label).toLowerCase();
+      if (s.includes('under') && s.includes('40')) return 20000;
+      if (s.includes('over') && s.includes('120')) return 150000;
+      const nums = s.match(/\d+/g);
+      if (nums && nums.length >= 2) return Math.round((+nums[0] + +nums[1]) / 2);
+      if (nums) return +nums[0];
+      return 60000;
+    }
+
+    function stepDisplayValue(stepKey, state) {
+      if (stepKey === 'date') return state.dateLabel || state.date;
+      return state[stepKey];
+    }
+
+    function detectFlowFromText(text) {
+      const t = text.toLowerCase();
+      if (/\b(recall|استدعاء|استدعاءات)\b/.test(t)) return 'recall';
+      if (/\b(trade.?in|tradein|valuation|estimate|worth|استبدال|تقييم)\b/.test(t)) return 'tradein';
+      if (/\b(book|appointment|service|oil change|brake|maintenance|صيانة|حجز)\b/.test(t)) return 'booking';
+      return null;
+    }
+
+    function detectFlowFromHistory() {
+      if (threadFlow.flowKey) return threadFlow.flowKey;
+      for (let i = chatHistory.length - 1; i >= 0; i--) {
+        if (chatHistory[i].role !== 'user') continue;
+        const flow = detectFlowFromText(chatHistory[i].text);
+        if (flow) return flow;
+      }
+      return null;
+    }
+
+    function inferNextMissingStep(flowKey, collected) {
+      const flow = FLOW_CONFIG[flowKey];
+      if (!flow) return null;
+      for (const step of flow.steps) {
+        if (step.key === 'confirm') continue;
+        if (!collected[step.key]) return step.key;
+      }
+      return null;
+    }
+
+    function syncCollectedFromHistory(flowKey) {
+      const flow = FLOW_CONFIG[flowKey];
+      const collected = { ...flow.initial, ...threadFlow.collected };
+      const userText = chatHistory.filter(m => m.role === 'user').map(m => m.text).join('\n');
+      const lower = userText.toLowerCase();
+
+      for (const svc of VEHICLE_CATALOG.services) {
+        if (lower.includes(svc.toLowerCase())) collected.service = svc;
+      }
+      for (const make of VEHICLE_CATALOG.makes) {
+        if (new RegExp(`\\b${make}\\b`, 'i').test(userText)) collected.make = make;
+      }
+      for (const make of Object.keys(VEHICLE_CATALOG.models)) {
+        if (make === 'Other') continue;
+        for (const model of VEHICLE_CATALOG.models[make]) {
+          if (new RegExp(`\\b${model.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(userText)) {
+            collected.model = model;
+            if (!collected.make) collected.make = make;
+          }
+        }
+      }
+      for (const yr of VEHICLE_CATALOG.years) {
+        if (new RegExp(`\\b${yr}\\b`).test(userText)) collected.year = String(yr);
+      }
+      for (const cond of VEHICLE_CATALOG.conditions) {
+        if (new RegExp(`\\b${cond}\\b`, 'i').test(userText)) collected.condition = cond;
+      }
+      for (const mi of VEHICLE_CATALOG.mileage) {
+        if (userText.includes(mi)) collected.mileage = mi;
+      }
+      for (const t of VEHICLE_CATALOG.times) {
+        if (userText.includes(t)) collected.time = t;
+      }
+      const nameMatch = userText.match(/(?:my name is|i'm|i am|customer name:?|name is)\s+([A-Za-z\u0600-\u06FF][A-Za-z\u0600-\u06FF .'-]{1,38})/i);
+      if (nameMatch) collected.name = nameMatch[1].trim();
+
+      threadFlow.collected = collected;
+      return collected;
+    }
+
+    function persistThreadState(flowKey, state) {
+      threadFlow.flowKey = flowKey;
+      const flow = FLOW_CONFIG[flowKey];
+      threadFlow.collected = {};
+      for (const step of flow.steps) {
+        if (step.key === 'confirm') continue;
+        if (state[step.key]) threadFlow.collected[step.key] = state[step.key];
+        if (step.key === 'date' && state.dateLabel) threadFlow.collected.dateLabel = state.dateLabel;
+      }
+    }
+
+    function mountWizardCard(flowKey, state, options = {}) {
+      const flow = FLOW_CONFIG[flowKey];
+      if (!flow) return null;
+
+      const threadMode = !!options.threadMode;
+      const wrapper = document.createElement('div');
+      wrapper.className = 'msg-wrapper';
+      wrapper.style.alignSelf = 'stretch';
+      const card = document.createElement('div');
+      card.className = 'booking-wizard' + (threadMode ? ' thread-guided' : '');
+      wrapper.appendChild(card);
+      (options.parent || messagesEl).appendChild(wrapper);
+      scrollChat();
+
+      function goToNextStep() {
+        const missing = inferNextMissingStep(flowKey, state);
+        if (missing) {
+          state.step = flow.steps.findIndex(s => s.key === missing);
+        } else {
+          state.step = flow.steps.findIndex(s => s.key === 'confirm');
+        }
+      }
+
+      function advanceStep(updates) {
+        Object.assign(state, updates);
+        persistThreadState(flowKey, state);
+        goToNextStep();
+        render();
+      }
+
+      function render() {
+        const step = flow.steps[state.step];
+        const total = flow.steps.length;
+        const filledSteps = flow.steps.filter(s => s.key !== 'confirm' && state[s.key]);
+
+        card.innerHTML = `
+          <div class="wizard-step-label">${flow.label}</div>
+          <div class="wizard-progress">Step ${state.step + 1} of ${total}</div>
+          <div class="wizard-step-track" id="wizardTrack"></div>
+          <div class="wizard-collected" id="wizardCollected"></div>
+          <div class="wizard-title">${step.title}</div>
+          <div id="wizardBody"></div>
+          <div class="wizard-actions" id="wizardActions"></div>
+        `;
+
+        const track = card.querySelector('#wizardTrack');
+        flow.steps.forEach((s, i) => {
+          const dot = document.createElement('span');
+          dot.className = 'wizard-dot' +
+            (i < state.step ? ' done' : '') +
+            (i === state.step ? ' active' : '');
+          dot.title = s.title;
+          track.appendChild(dot);
+        });
+
+        const collectedEl = card.querySelector('#wizardCollected');
+        filledSteps.forEach(s => {
+          const chip = document.createElement('button');
+          chip.type = 'button';
+          chip.className = 'wizard-chip';
+          chip.textContent = stepDisplayValue(s.key, state);
+          chip.title = `Edit: ${s.title}`;
+          chip.addEventListener('click', () => {
+            state.step = flow.steps.findIndex(st => st.key === s.key);
+            render();
+          });
+          collectedEl.appendChild(chip);
+        });
+        if (!filledSteps.length) collectedEl.style.display = 'none';
+
+        const body = card.querySelector('#wizardBody');
+        const actions = card.querySelector('#wizardActions');
+        let customForm = false;
+
+        function addOptions(items, onPick, getLabel = x => x, getValue = x => x) {
+          const grid = document.createElement('div');
+          grid.className = 'option-grid';
+          items.forEach(item => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'option-btn';
+            btn.textContent = getLabel(item);
+            btn.addEventListener('click', () => onPick(getValue(item), getLabel(item)));
+            grid.appendChild(btn);
+          });
+          body.appendChild(grid);
+          return grid;
+        }
+
+        function addPrimaryAction(label, onClick) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'primary';
+          btn.textContent = label;
+          btn.addEventListener('click', onClick);
+          actions.appendChild(btn);
+        }
+
+        function addBackCancel() {
+          const back = document.createElement('button');
+          back.type = 'button';
+          back.textContent = 'Back';
+          back.addEventListener('click', () => { state.step--; render(); });
+          actions.appendChild(back);
+          const cancel = document.createElement('button');
+          cancel.type = 'button';
+          cancel.textContent = 'Cancel';
+          cancel.addEventListener('click', () => wrapper.remove());
+          actions.appendChild(cancel);
+        }
+
+        function renderCustomModelEntry() {
+          customForm = true;
+          body.innerHTML = '';
+          actions.innerHTML = '';
+          const hint = document.createElement('p');
+          hint.className = 'welcome-text';
+          hint.style.marginBottom = '0.5rem';
+          hint.textContent = `Enter your ${state.make} model:`;
+          body.appendChild(hint);
+          const modelInput = document.createElement('input');
+          modelInput.className = 'wizard-input';
+          modelInput.type = 'text';
+          modelInput.placeholder = 'e.g. Altima, Pajero, C-Class';
+          body.appendChild(modelInput);
+          addPrimaryAction('Continue', () => {
+            const md = modelInput.value.trim();
+            if (!md) { modelInput.focus(); return; }
+            advanceStep({ model: md });
+          });
+          addBackCancel();
+        }
+
+        function renderOtherVehicleStep() {
+          customForm = true;
+          body.innerHTML = '';
+          actions.innerHTML = '';
+          const hint = document.createElement('p');
+          hint.className = 'welcome-text';
+          hint.style.marginBottom = '0.5rem';
+          hint.textContent = 'Al-Futtaim Auto Centers support all makes and models.';
+          body.appendChild(hint);
+          const makeInput = document.createElement('input');
+          makeInput.className = 'wizard-input';
+          makeInput.type = 'text';
+          makeInput.placeholder = 'Vehicle make (e.g. Nissan, Mitsubishi)';
+          makeInput.value = state.make === 'Other' ? '' : state.make;
+          const modelInput = document.createElement('input');
+          modelInput.className = 'wizard-input';
+          modelInput.type = 'text';
+          modelInput.placeholder = 'Vehicle model (e.g. Altima, Pajero)';
+          modelInput.value = state.model || '';
+          body.appendChild(makeInput);
+          body.appendChild(modelInput);
+          addPrimaryAction('Continue', () => {
+            const mk = makeInput.value.trim();
+            const md = modelInput.value.trim();
+            if (!mk) { makeInput.focus(); return; }
+            if (!md) { modelInput.focus(); return; }
+            advanceStep({ make: mk, model: md });
+          });
+          addBackCancel();
+        }
+
+        if (step.key === 'service') {
+          addOptions(VEHICLE_CATALOG.services, v => advanceStep({ service: v }));
+        } else if (step.key === 'make') {
+          addOptions(VEHICLE_CATALOG.makes, v => advanceStep({ make: v }));
+        } else if (step.key === 'model') {
+          if (state.make === 'Other') {
+            renderOtherVehicleStep();
+          } else {
+            const models = VEHICLE_CATALOG.models[state.make] || VEHICLE_CATALOG.models.Other;
+            const grid = addOptions(models, v => advanceStep({ model: v }));
+            const notListed = document.createElement('button');
+            notListed.type = 'button';
+            notListed.className = 'option-btn';
+            notListed.textContent = 'Model not listed — type it';
+            notListed.addEventListener('click', () => renderCustomModelEntry());
+            grid.appendChild(notListed);
+          }
+        } else if (step.key === 'year') {
+          addOptions(VEHICLE_CATALOG.years, v => advanceStep({ year: String(v) }));
+        } else if (step.key === 'date') {
+          addOptions(next7Days(), (v, label) =>
+            advanceStep({ date: v, dateLabel: label }),
+            d => d.label, d => d.value);
+        } else if (step.key === 'time') {
+          addOptions(VEHICLE_CATALOG.times, v => advanceStep({ time: v }));
+        } else if (step.key === 'mileage') {
+          addOptions(VEHICLE_CATALOG.mileage, v => advanceStep({ mileage: v }));
+        } else if (step.key === 'condition') {
+          addOptions(VEHICLE_CATALOG.conditions, v => advanceStep({ condition: v }));
+        } else if (step.key === 'name') {
+          customForm = true;
+          const input = document.createElement('input');
+          input.className = 'wizard-input';
+          input.type = 'text';
+          input.placeholder = 'e.g. Sara Ahmed';
+          input.value = state.name || '';
+          body.appendChild(input);
+          addPrimaryAction('Continue', () => {
+            const name = input.value.trim();
+            if (!name) { input.focus(); return; }
+            advanceStep({ name });
+          });
+        } else if (step.key === 'confirm') {
+          const summary = document.createElement('div');
+          summary.className = 'wizard-summary';
+          summary.textContent = flow.summary(state);
+          body.appendChild(summary);
+          addPrimaryAction(flow.confirmLabel, () => {
+            wrapper.remove();
+            sendMessage(flow.buildMessage(state), { entryMode: 'guided' });
+          });
+        }
+
+        const skipNav = customForm || (step.key === 'model' && state.make === 'Other');
+        const hasPrimary = step.key === 'name' || step.key === 'confirm';
+
+        if (!skipNav && state.step > 0 && step.key !== 'confirm') {
+          const back = document.createElement('button');
+          back.type = 'button';
+          back.textContent = 'Back';
+          back.addEventListener('click', () => { state.step--; render(); });
+          actions.appendChild(back);
+        }
+        if (!skipNav && !hasPrimary && step.key !== 'confirm') {
+          const cancel = document.createElement('button');
+          cancel.type = 'button';
+          cancel.textContent = 'Cancel';
+          cancel.addEventListener('click', () => wrapper.remove());
+          actions.appendChild(cancel);
+        }
+      }
+
+      render();
+      return wrapper;
+    }
+
+    function isFollowUpQuestion(body, chips) {
+      if (chips.length > 0) return true;
+      if (body.includes('?')) return true;
+      const b = body.toLowerCase();
+      return /what |which |when |please (tell|provide|share|let me know)|could you|can you|may i have/.test(b);
+    }
+
+    function isHandoverOrComplete(body) {
+      const b = body.toLowerCase();
+      return /escalat|handover|advisor will follow|appointment confirmed|confirmation code:\s*af-|no open recalls|estimated trade-in/.test(b);
+    }
+
+    function attachThreadGuidedFollowUp(parentWrapper, body, chips) {
+      if (!isFollowUpQuestion(body, chips) || isHandoverOrComplete(body)) return false;
+
+      const flowKey = detectFlowFromHistory();
+      if (!flowKey) return false;
+
+      const collected = syncCollectedFromHistory(flowKey);
+      const missingKey = inferNextMissingStep(flowKey, collected);
+      if (!missingKey) return false;
+
+      const flow = FLOW_CONFIG[flowKey];
+      const stepIndex = flow.steps.findIndex(s => s.key === missingKey);
+      if (stepIndex < 0) return false;
+
+      threadFlow.flowKey = flowKey;
+      const state = { step: stepIndex, ...flow.initial, ...collected };
+      mountWizardCard(flowKey, state, { threadMode: true, parent: parentWrapper });
+      return true;
+    }
+
+    function startGuidedWizard(flowKey) {
+      const flow = FLOW_CONFIG[flowKey];
+      if (!flow) return;
+      welcomePanel.innerHTML = '';
+      welcomePanel.style.display = 'none';
+      threadFlow = { flowKey, collected: { ...flow.initial } };
+      const state = { step: 0, ...flow.initial };
+      mountWizardCard(flowKey, state);
+    }
+
+    document.querySelectorAll('[data-flow]').forEach(btn => {
+      btn.addEventListener('click', () => startGuidedWizard(btn.dataset.flow));
+    });
+
+    function addBubble(text, role, options = {}) {
+      const persist = options.persist !== false;
+      let displayText = text;
+      let chips = options.chips || [];
+
+      if (role === 'assistant' && !options.skipOptionsParse) {
+        const parsed = parseReplyOptions(text);
+        displayText = parsed.body;
+        chips = parsed.chips;
+      }
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'msg-wrapper';
+      wrapper.style.display = 'flex';
+      wrapper.style.flexDirection = 'column';
+      wrapper.style.alignItems = role === 'user' ? 'flex-end' : 'flex-start';
+
+      if (role === 'assistant' && options.agentLabel) {
+        const badge = document.createElement('div');
+        const agentKey = options.routedAgent || 'general';
+        badge.className = `agent-badge ${agentKey}`;
+        badge.textContent = options.agentLabel;
+        badge.title = options.routeReason ? `Routed: ${options.routeReason}` : '';
+        wrapper.appendChild(badge);
+      }
+
+      const bubble = document.createElement('div');
+      bubble.className = `bubble ${role}`;
+      bubble.textContent = displayText;
+      wrapper.appendChild(bubble);
+
+      if (role === 'assistant' && chips.length > 0) {
+        const usedGuided = attachThreadGuidedFollowUp(wrapper, displayText, chips);
+        if (!usedGuided) {
+          const chipRow = document.createElement('div');
+          chipRow.className = 'reply-options';
+          chips.forEach(chip => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = chip;
+            btn.addEventListener('click', () => sendMessage(chip));
+            chipRow.appendChild(btn);
+          });
+          wrapper.appendChild(chipRow);
+        }
+      } else if (role === 'assistant') {
+        attachThreadGuidedFollowUp(wrapper, displayText, []);
+      }
+
+      if (role === 'assistant' && !options.skipFeedback) {
+        const fb = document.createElement('div');
+        fb.className = 'feedback-row';
+        ['up', 'down'].forEach(rating => {
+          const btn = document.createElement('button');
+          btn.textContent = rating === 'up' ? '👍' : '👎';
+          btn.title = rating === 'up' ? 'Helpful' : 'Not helpful';
+          btn.addEventListener('click', async () => {
+            fb.querySelectorAll('button').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            try {
+              await fetch('/feedback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ thread_id: threadId, rating }),
+              });
+            } catch (_) { /* non-blocking */ }
+          });
+          fb.appendChild(btn);
+        });
+        wrapper.appendChild(fb);
+      }
+
+      messagesEl.appendChild(wrapper);
+      scrollChat();
+
+      if (persist) {
+        chatHistory.push({ role, text: displayText, skipFeedback: !!options.skipFeedback });
+      }
+
+      return wrapper;
+    }
+
+    function clearChatUi() {
+      chatHistory = [];
+      messagesEl.innerHTML = '';
+      messageInput.value = '';
+      welcomePanel.style.display = '';
+      showWelcome();
+    }
+
+    function startNewChat() {
+      if (hasChatHistory()) {
+        const ok = confirm('Start a new chat? Your current conversation will be lost.');
+        if (!ok) return;
+      }
+      if (abortController) cancelRequest();
+      threadId = crypto.randomUUID();
+      threadFlow = { flowKey: null, collected: {} };
+      customerPhone = null;
+      customerGreetingShown = false;
+      clearChatUi();
+      statusLine.textContent = 'New conversation started.';
+      scrollChat();
+    }
+
+    newChatBtn.addEventListener('click', startNewChat);
+
+    routesBtn.addEventListener('click', async () => {
+      try {
+        const res = await fetch('/admin/routes?limit=15');
+        if (!res.ok) throw new Error('Could not load routing log');
+        const data = await res.json();
+        const lines = (data.routes || []).map(r =>
+          `${r.created_at.slice(11, 19)} · ${r.agent} · ${r.route_reason}\n  “${r.message_preview}”`
+        );
+        alert(
+          lines.length
+            ? `800-AF multi-agent routing (latest ${lines.length})\n\n${lines.join('\n\n')}`
+            : 'No routing events yet — send a message to see agent routing.'
+        );
+      } catch (err) {
+        alert(err.message || String(err));
+      }
+    });
+
+    window.addEventListener('beforeunload', (e) => {
+      if (!hasChatHistory()) return;
+      e.preventDefault();
+      e.returnValue = 'Refresh or leave this page? Your chat history will be cleared.';
+    });
+
+    function addErrorBubble(detail) {
+      addBubble(detail, 'error', { skipFeedback: true });
+    }
+
+    async function parseError(res) {
+      try {
+        const data = await res.json();
+        if (Array.isArray(data.detail)) {
+          return data.detail.map(d => d.msg || JSON.stringify(d)).join('; ');
+        }
+        return data.detail || data.message || res.statusText;
+      } catch {
+        return res.statusText || `HTTP ${res.status}`;
+      }
+    }
+
+    function setLoading(on) {
+      sendBtn.disabled = on;
+      micBtn.disabled = on;
+      stopBtn.classList.toggle('visible', on);
+      statusLine.textContent = on ? 'Waiting for response…' : '';
+    }
+
+    function cancelRequest() {
+      if (abortController) {
+        abortController.abort();
+        abortController = null;
+      }
+      setLoading(false);
+      statusLine.textContent = 'Request cancelled.';
+    }
+
+    stopBtn.addEventListener('click', cancelRequest);
+
+    async function sendMessage(message, options = {}) {
+      if (!message || !message.trim()) return;
+      const text = message.trim();
+      const entryMode = options.entryMode || 'free_text';
+      const detected = detectFlowFromText(text);
+      if (detected) threadFlow.flowKey = detected;
+      messageInput.value = '';
+      addBubble(text, 'user');
+      setLoading(true);
+      abortController = new AbortController();
+
+      try {
+        const res = await fetch('/chat/text', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: text,
+            thread_id: threadId,
+            entry_mode: entryMode,
+            customer_phone: customerPhone,
+          }),
+          signal: abortController.signal,
+        });
+        if (!res.ok) {
+          addErrorBubble(await parseError(res));
+          return;
+        }
+        const data = await res.json();
+        if (data.customer_greeting && !customerGreetingShown) {
+          addBubble(data.customer_greeting, 'assistant', { skipFeedback: true, skipOptionsParse: true });
+          customerGreetingShown = true;
+        }
+        addBubble(data.reply, 'assistant', {
+          agentLabel: data.agent_label,
+          routedAgent: data.routed_agent,
+          routeReason: data.route_reason,
+        });
+        if (data.agent_label) {
+          statusLine.textContent =
+            `Routed to ${data.agent_label} (${data.route_reason || 'routed'})` +
+            (data.variant ? ` · Variant ${data.variant}` : '');
+        }
+        refreshMetrics();
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          addErrorBubble(err.message || String(err));
+        }
+      } finally {
+        abortController = null;
+        setLoading(false);
+      }
+    }
+
+    async function sendText() {
+      const message = messageInput.value.trim();
+      if (!message) return;
+      await sendMessage(message);
+    }
+
+    sendBtn.addEventListener('click', sendText);
+    messageInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendText();
+      }
+    });
+
+    async function sendVoice(blob, durationSeconds, filename) {
+      if (durationSeconds < 0.4 || blob.size < 100) {
+        addErrorBubble('Recording too short — hold the mic button and speak for at least half a second.');
+        return;
+      }
+
+      setLoading(true);
+      abortController = new AbortController();
+
+      const form = new FormData();
+      form.append('audio', blob, filename);
+      form.append('thread_id', threadId);
+      form.append('duration_seconds', String(durationSeconds));
+
+      try {
+        const res = await fetch('/chat/voice', {
+          method: 'POST',
+          body: form,
+          signal: abortController.signal,
+        });
+        if (!res.ok) {
+          addErrorBubble(await parseError(res));
+          return;
+        }
+        const data = await res.json();
+        if (data.transcript) {
+          const detected = detectFlowFromText(data.transcript);
+          if (detected) threadFlow.flowKey = detected;
+          addBubble(data.transcript, 'user');
+        }
+        addBubble(data.reply_text, 'assistant', {
+          agentLabel: data.agent_label,
+          routedAgent: data.routed_agent,
+          routeReason: data.route_reason,
+        });
+        if (data.audio_base64) {
+          const audio = new Audio('data:audio/wav;base64,' + data.audio_base64);
+          audio.play().catch(() => speakBrowserTts(data.reply_text));
+        } else if (data.use_browser_tts && data.reply_text) {
+          speakBrowserTts(data.reply_text);
+        }
+        if (data.tts_error) {
+          addBubble(data.tts_error, 'error', { skipFeedback: true });
+        }
+        refreshMetrics();
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          addErrorBubble(err.message || String(err));
+        }
+      } finally {
+        abortController = null;
+        setLoading(false);
+      }
+    }
+
+    async function startRecording() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioChunks = [];
+        recordMimeType = pickRecorderMimeType();
+        const options = recordMimeType ? { mimeType: recordMimeType } : undefined;
+        mediaRecorder = new MediaRecorder(stream, options);
+        recordStart = Date.now();
+        mediaRecorder.ondataavailable = e => { if (e.data.size) audioChunks.push(e.data); };
+        mediaRecorder.onstop = () => {
+          stream.getTracks().forEach(t => t.stop());
+          const duration = (Date.now() - recordStart) / 1000;
+          const mime = mediaRecorder.mimeType || recordMimeType || 'audio/webm';
+          const ext = mime.includes('mp4') ? 'recording.m4a' : mime.includes('ogg') ? 'recording.ogg' : 'recording.webm';
+          const blob = new Blob(audioChunks, { type: mime });
+          sendVoice(blob, duration, ext);
+        };
+        mediaRecorder.start();
+        micBtn.classList.add('recording');
+      } catch (err) {
+        addErrorBubble('Microphone access denied: ' + (err.message || String(err)));
+      }
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
+      micBtn.classList.remove('recording');
+      micBtn.innerHTML = MIC_SVG;
+    }
+
+    micBtn.addEventListener('mousedown', startRecording);
+    micBtn.addEventListener('mouseup', stopRecording);
+    micBtn.addEventListener('mouseleave', stopRecording);
+    micBtn.addEventListener('touchstart', e => { e.preventDefault(); startRecording(); });
+    micBtn.addEventListener('touchend', e => { e.preventDefault(); stopRecording(); });
+
+    async function refreshMetrics() {
+      try {
+        const res = await fetch('/metrics');
+        if (!res.ok) return;
+        const m = await res.json();
+        document.getElementById('mResolution').textContent =
+          (m.resolution_rate * 100).toFixed(1) + '%';
+        document.getElementById('mEscalation').textContent =
+          (m.escalation_rate * 100).toFixed(1) + '%';
+        document.getElementById('mCost').textContent =
+          '$' + (m.cost_per_resolution_usd || 0).toFixed(4);
+      } catch (_) { /* silent */ }
+    }
+
+    refreshMetrics();
+    setInterval(refreshMetrics, 30000);
+    showWelcome();
+  </script>
+  <script src="/static/theme.js"></script>
+</body>
+</html>
