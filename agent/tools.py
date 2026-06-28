@@ -48,6 +48,12 @@ RECALL_DATA: dict[tuple[str, str, int], list[dict]] = {
 
 CONDITION_MULTIPLIERS = {"excellent": 1.0, "good": 0.85, "fair": 0.65, "poor": 0.45}
 
+# Trade-in estimate formula (AED — UAE market)
+_TRADE_IN_MIN_AED = 2_000
+_TRADE_IN_BASE_FLOOR_AED = 11_000
+_TRADE_IN_STARTING_VALUE_AED = 103_000
+_TRADE_IN_DEPRECIATION_PER_YEAR_AED = 6_600
+_TRADE_IN_MILEAGE_PENALTY_PER_KM_AED = 0.30
 
 @tool
 def get_customer_profile(phone: str) -> str:
@@ -198,17 +204,17 @@ def get_trade_in_quote(make: str, model: str, year: int, mileage: int | str, con
     mileage_km = _parse_mileage_km(mileage)
     current_year = datetime.now().year
     age = max(0, current_year - year)
-    base_value = max(3000, 28000 - age * 1800)
+    base_value = max(_TRADE_IN_BASE_FLOOR_AED, _TRADE_IN_STARTING_VALUE_AED - age * _TRADE_IN_DEPRECIATION_PER_YEAR_AED)
     multiplier = CONDITION_MULTIPLIERS.get(condition.lower(), 0.75)
-    mileage_penalty = max(0, (mileage_km - 60000) * 0.08)
-    estimate = max(500, base_value * multiplier - mileage_penalty)
+    mileage_penalty = max(0, (mileage_km - 60000) * _TRADE_IN_MILEAGE_PENALTY_PER_KM_AED)
+    estimate = max(_TRADE_IN_MIN_AED, base_value * multiplier - mileage_penalty)
     log_tool_event(_current_thread_id, "get_trade_in_quote")
     mileage_label = f"{mileage_km:,} km" if isinstance(mileage, int) else str(mileage)
     return (
         f"Estimated trade-in for {year} {make} {model}:\n"
         f"  Condition: {condition}\n"
         f"  Mileage: {mileage_label}\n"
-        f"  Estimated value: ${estimate:,.0f}\n"
+        f"  Estimated value: AED {estimate:,.0f}\n"
         f"(Estimate only — final offer requires in-person inspection.)"
     )
 
